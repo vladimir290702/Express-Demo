@@ -1,17 +1,35 @@
 const express = require('express');
+const handlebars = require('express-handlebars');
+const bodyParser = require('body-parser');
+
 const app = express();
 
+const cats = require('./cats');
+
 const catMiddleware = require('./middlewares/middleware');
-const logger = require('./middlewares/logger');
 
-app.use(logger);
+app.use(bodyParser.urlencoded({ extended: false }));
 
-const cats = [];
+app.engine('hbs', handlebars({
+    extname: 'hbs'
+}));
+app.set('view engine', 'hbs');
 
 app.get('/', (req, res) => {
-    res.send('Hello Express');
-    res.sendFile('./views/home.html', {root: __dirname});
+    let name = 'Ivan';
+    res.render('home', { name });
 });
+
+app.get('/cats', (req, res) => {
+
+    res.render('cat', {cats: cats.getAll()});
+})
+
+app.post('/cats', (req, res) => {
+    let name = req.body.cat;
+    cats.add(name);
+    res.redirect('/cats');
+})
 
 app.get('/download', (req, res) => {
     res.download('./views/home.html');
